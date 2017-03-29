@@ -63,7 +63,7 @@ int main(int argc, char** argv){
     size_t nbr_children;
     pid_t child;
 
-    if (argc == 3){
+    if (argc == 4){
         nbr_msgs = atoi(argv[1]);
         msg_size = atoi(argv[2]);
         nbr_children = atoi(argv[3]);

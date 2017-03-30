@@ -14,9 +14,9 @@
 #define SOCK_PATH ".socket"
 
 #ifdef PRINTOUT
-#define CHILD_COLOR_YELLOW   "\x1b[33;1m"
-#define PARENT_COLOR_PURPLE "\x1b[35;1m"
-#define RESET_COLOR         "\x1b[0m"
+    #define CHILD_COLOR_YELLOW   "\x1b[33;1m"
+    #define PARENT_COLOR_PURPLE "\x1b[35;1m"
+    #define RESET_COLOR         "\x1b[0m"
 #endif
 
 /* Using global variables here since they will

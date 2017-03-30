@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-Wall -I.
 THR_FLAGS=-lpthread
 
 ifeq ($(PRINTOUT),1)

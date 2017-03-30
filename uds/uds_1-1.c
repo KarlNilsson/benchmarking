@@ -5,6 +5,7 @@
 #include<sys/socket.h>
 #include<stdlib.h>
 #include<string.h>
+#include<unistd.h>
 
 #ifdef PRINTOUT
 #define PARENT_COLOR_YELLOW   "\x1b[33;1m"
@@ -40,10 +41,9 @@ int main(int argc, char** argv){
         goto exit_error;
     }
 
-    i = 0;
     if (fork() == 0){
         close(socks[1]);
-        for (i; i < nbr_msgs; ++i){
+        for (i = 0; i < nbr_msgs; ++i){
 
             if (read(socks[0], msg, msg_size) < 0){
                 perror("Error using read(socks[0])");
@@ -51,7 +51,7 @@ int main(int argc, char** argv){
             }
             
             #ifdef PRINTOUT
-            printf(PARENT_COLOR_YELLOW "PONG (%s)\n" RESET_COLOR, &msg); 
+            printf(PARENT_COLOR_YELLOW "PONG (%s)\n" RESET_COLOR, (char*) &msg); 
             sprintf(msg, "%d", -(i+1));
             #endif
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv){
                 goto exit_error;
             }
             #ifdef PRINTOUT
-            printf(PARENT_COLOR_YELLOW "PING (%s)\n" RESET_COLOR, &msg);
+            printf(PARENT_COLOR_YELLOW "PING (%s)\n" RESET_COLOR, (char*) &msg);
             #endif
 
         }
@@ -68,11 +68,11 @@ int main(int argc, char** argv){
 
     } else {
         close(socks[0]);
-        for (i; i < nbr_msgs; ++i){
+        for (i = 0; i < nbr_msgs; ++i){
             
             #ifdef PRINTOUT
             sprintf(msg, "%d", i+1);
-            printf(PARENT_COLOR_PURPLE "PING (%s)\n" RESET_COLOR, &msg);
+            printf(PARENT_COLOR_PURPLE "PING (%s)\n" RESET_COLOR, (char*) &msg);
             #endif
 
             if (write(socks[1], msg, msg_size) < 0){
@@ -86,7 +86,7 @@ int main(int argc, char** argv){
             }
 
             #ifdef PRINTOUT
-            printf(PARENT_COLOR_PURPLE "PONG (%s)\n" RESET_COLOR, &msg);
+            printf(PARENT_COLOR_PURPLE "PONG (%s)\n" RESET_COLOR, (char*) &msg);
             #endif
 
         }

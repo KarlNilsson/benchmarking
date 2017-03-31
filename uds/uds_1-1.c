@@ -52,7 +52,7 @@ int main(int argc, char** argv){
             
             #ifdef PRINTOUT
             printf(PARENT_COLOR_YELLOW "PONG (%s)\n" RESET_COLOR, (char*) &msg); 
-            sprintf(msg, "%d", -(i+1));
+            fflush(stdout);
             #endif
 
         }
@@ -63,7 +63,9 @@ int main(int argc, char** argv){
             }
 
             #ifdef PRINTOUT
+            sprintf(msg, "%d", -(i+1));
             printf(PARENT_COLOR_YELLOW "PING (%s)\n" RESET_COLOR, (char*) &msg);
+            fflush(stdout);
             #endif
         }
         close(socks[0]);
@@ -75,6 +77,7 @@ int main(int argc, char** argv){
             #ifdef PRINTOUT
             sprintf(msg, "%d", i+1);
             printf(PARENT_COLOR_PURPLE "PING (%s)\n" RESET_COLOR, (char*) &msg);
+            fflush(stdout);
             #endif
 
             if (write(socks[1], msg, msg_size) < 0){
@@ -91,6 +94,7 @@ int main(int argc, char** argv){
 
             #ifdef PRINTOUT
             printf(PARENT_COLOR_PURPLE "PONG (%s)\n" RESET_COLOR, (char*) &msg);
+            fflush(stdout);
             #endif
 
         }

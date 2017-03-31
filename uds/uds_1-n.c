@@ -40,11 +40,6 @@ void *server_thread(void *sock_desc){
         fflush(stdout);
         #endif
 
-        /* Write a message to the socket, then wait
-         * for the response. If PRINTOUT is defined,
-         * print the response, and send a message that
-         * makes sense when printed. */
-
         if ((write(sock, msg, msg_size) < 0)){
             perror("Error sending message on a server thread");
             pthread_exit(NULL);
@@ -72,7 +67,7 @@ int main(int argc, char** argv){
     size_t nbr_clients;
     socklen_t len;
     struct sockaddr_un local, remote;
-    pid_t child;
+    pid_t client;
 
     if (argc == 4){
         nbr_msgs = atoi(argv[1]);
@@ -112,13 +107,16 @@ int main(int argc, char** argv){
 
     int i;
     for (i = 0; i < nbr_clients; ++i){
-        child = fork();
-        if (child == 0)
+        client = fork();
+        if (client == 0)
             break;
     }
 
-    if (child == 0){
-        int child_sock;
+    if (client == 0){
+        #ifdef PRINTOUT
+        int client_id = i+1;
+        #endif
+        int client_sock;
         char msg[msg_size];
 
         if ((memset(&msg, '\0', msg_size)) == NULL){
@@ -126,26 +124,26 @@ int main(int argc, char** argv){
             goto exit_error;
         }
 
-        if ((child_sock = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0){
-           perror("Error creating child socket");
+        if ((client_sock = socket(AF_UNIX, SOCK_SEQPACKET, 0)) < 0){
+           perror("Error creating client socket");
            goto exit_error;
         }
 
-        if (connect(child_sock, (struct sockaddr*)&remote, len) < 0){
-            perror("Error connecting from child");
+        if (connect(client_sock, (struct sockaddr*)&remote, len) < 0){
+            perror("Error connecting from client");
             goto exit_error;
         }
 
         for (i = 0; i < nbr_msgs; ++i){
-            if (read(child_sock, msg, msg_size) < 0){
-                perror("Error using read(child_sock)");
+            if (read(client_sock, msg, msg_size) < 0){
+                perror("Error using read(client_sock)");
                 goto exit_error;
             } 
 
             #ifdef PRINTOUT
             printf(CHILD_COLOR_YELLOW
-                    "PONG (%s) - Child #%d\n"
-                    RESET_COLOR, (char*) &msg, i + 1); 
+                    "PONG (%s) - Client #%d\n"
+                    RESET_COLOR, (char*) &msg, client_id); 
             fflush(stdout);
             #endif
         }
@@ -155,13 +153,13 @@ int main(int argc, char** argv){
             #ifdef PRINTOUT
             sprintf(msg, "%d", -(i+1));
             printf(CHILD_COLOR_YELLOW
-                    "PING (%s) - Child #%d\n"
-                    RESET_COLOR, (char*) &msg, i +1);
+                    "PING (%s) - Client #%d\n"
+                    RESET_COLOR, (char*) &msg, client_id);
             fflush(stdout);
             #endif
 
-            if (write(child_sock, msg, msg_size) < 0){
-                perror("Error using write(child_sock)");
+            if (write(client_sock, msg, msg_size) < 0){
+                perror("Error using write(client_sock)");
                 goto exit_error;
             }
 

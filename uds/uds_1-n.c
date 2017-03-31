@@ -49,14 +49,16 @@ void *server_thread(void *sock_desc){
             perror("Error sending message on a server thread");
             pthread_exit(NULL);
         }
+    }
 
+    for (i = 0; i < nbr_msgs; ++i){
         if ((read(sock, msg, msg_size) < 0)){
             perror("Error receiving message on a server thread");
             pthread_exit(NULL);
         }
 
         #ifdef PRINTOUT
-        printf(PARENT_COLOR_PURPLE "PING (%s)\n" RESET_COLOR, (char*) &msg);
+        printf(PARENT_COLOR_PURPLE "PONG (%s)\n" RESET_COLOR, (char*) &msg);
         fflush(stdout);
         #endif
 
@@ -67,7 +69,7 @@ void *server_thread(void *sock_desc){
 
 int main(int argc, char** argv){
     int server_sock;
-    size_t nbr_children;
+    size_t nbr_clients;
     socklen_t len;
     struct sockaddr_un local, remote;
     pid_t child;
@@ -75,13 +77,13 @@ int main(int argc, char** argv){
     if (argc == 4){
         nbr_msgs = atoi(argv[1]);
         msg_size = atoi(argv[2]);
-        nbr_children = atoi(argv[3]);
+        nbr_clients = atoi(argv[3]);
     } else {
-        printf("Usage: './uds_1-n nbr_msgs msg_size nbr_children'\n"
-                "Defaulting to nbr_msgs = 4, msg_size = 512 nbr_children = 4\n");
+        printf("Usage: './uds_1-n nbr_msgs msg_size nbr_clients'\n"
+                "Defaulting to nbr_msgs = 4, msg_size = 512 nbr_clients = 4\n");
         nbr_msgs = 4;
         msg_size = 512;
-        nbr_children = 4;
+        nbr_clients = 4;
     }
 
     server_sock = socket(AF_UNIX, SOCK_SEQPACKET, 0);
@@ -99,7 +101,7 @@ int main(int argc, char** argv){
         goto exit_error;
     }
 
-    if ((listen(server_sock, nbr_children)) < 0){
+    if ((listen(server_sock, nbr_clients)) < 0){
         perror("Error listening for connections");
         goto exit_error;
     }
@@ -109,7 +111,7 @@ int main(int argc, char** argv){
     strcpy(remote.sun_path, SOCK_PATH);
 
     int i;
-    for (i = 0; i < nbr_children; ++i){
+    for (i = 0; i < nbr_clients; ++i){
         child = fork();
         if (child == 0)
             break;
@@ -144,6 +146,13 @@ int main(int argc, char** argv){
             printf(CHILD_COLOR_YELLOW
                     "PONG (%s) - Child #%d\n"
                     RESET_COLOR, (char*) &msg, i + 1); 
+            fflush(stdout);
+            #endif
+        }
+
+
+        for (i = 0; i < nbr_msgs; ++i){
+            #ifdef PRINTOUT
             sprintf(msg, "%d", -(i+1));
             printf(CHILD_COLOR_YELLOW
                     "PING (%s) - Child #%d\n"
@@ -160,12 +169,12 @@ int main(int argc, char** argv){
 
     } else {
 
-        int ret_cd, conn_socks[nbr_children];
-        pthread_t threads[nbr_children];
+        int ret_cd, conn_socks[nbr_clients];
+        pthread_t threads[nbr_clients];
 
         socklen_t t;
         t = sizeof(remote);
-        for (i = 0; i < nbr_children; ++i){
+        for (i = 0; i < nbr_clients; ++i){
             conn_socks[i] = accept(server_sock, (struct sockaddr*) &local, &t);
             if (conn_socks[i] < 0){
                 perror("Error accepting connection");
@@ -179,7 +188,7 @@ int main(int argc, char** argv){
             }
         }
 
-        for (i = 0; i < nbr_children; ++i){
+        for (i = 0; i < nbr_clients; ++i){
             pthread_join(threads[i], NULL);
         }
     }

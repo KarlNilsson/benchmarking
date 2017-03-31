@@ -55,14 +55,16 @@ int main(int argc, char** argv){
             sprintf(msg, "%d", -(i+1));
             #endif
 
+        }
+        for (i = 0; i < nbr_msgs; ++i){
             if (write(socks[0], msg, msg_size) < 0){
                 perror("Error using write(socks[0])");
                 goto exit_error;
             }
+
             #ifdef PRINTOUT
             printf(PARENT_COLOR_YELLOW "PING (%s)\n" RESET_COLOR, (char*) &msg);
             #endif
-
         }
         close(socks[0]);
 
@@ -80,6 +82,8 @@ int main(int argc, char** argv){
                 goto exit_error;
             }
 
+        }
+        for (i = 0; i < nbr_msgs; ++i){
             if (read(socks[1], msg, msg_size) < 0){
                 perror("Error using read(socks[1])");
                 goto exit_error;
